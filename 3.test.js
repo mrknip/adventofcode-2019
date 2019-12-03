@@ -11,8 +11,8 @@ describe('getIntersections', () => {
 
     const result = getIntersections(start, pathA, pathB);
 
-    expect(result).to.deep.include({ x: 4, y: 5 });
-    expect(result).to.deep.include({ x: 7 , y: 3 });
+    expect(result).to.include("4,5");
+    expect(result).to.deep.include("7,3");
     expect(result.length).to.equal(2);
   });
 });
@@ -46,13 +46,13 @@ describe('getManhattanDistanceToStartFromIntersection', () => {
     expect(result).to.equal(135);
   })
 
-  it.skip('meets puzzle answer', () => {
+  it('meets puzzle answer', () => {
     const start = {x: 1, y: 8};
     const puzzleData = parsePuzzleData(data);
     console.log(puzzleData[0]);
     const result = getManhattanDistanceToStartFromIntersection(start, puzzleData[0], puzzleData[1]);
 
-    // expect(result).to.equal(135);
+    expect(result).to.equal(135);
   })
 
 })
