@@ -165,7 +165,7 @@ describe('AOC_5 - diagnostics', () => {
     expect(split[split.length - 1]).to.equal(5044655)
   })
 
-  it.only('works- thermals', () => {
+  it('works- thermals', () => {
     const program = airconDiagnosticProgram;
     const userInput = 5;
 

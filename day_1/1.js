@@ -17,14 +17,6 @@ function getRequiredFuel(masses, includeFuelMass) {
     .reduce((a,b) => a + b);
 }
 
-// const masses = data
-//   .split('\n')
-//   .map(v => parseInt(v, 10));
-
-// const result = getRequiredFuel(masses, true);
-
-// console.log(result);
-
 module.exports = {
   getRequiredFuel: getRequiredFuel,
   getFuelForMass: getFuelForMass,

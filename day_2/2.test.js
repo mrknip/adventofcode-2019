@@ -1,5 +1,4 @@
 const gravityAssistProgram = require('./2.data.js');
-const data = require('./1.data.js')
 const expect = require('chai').expect;
 const runOpcodeProgram = require('./2').runOpcodeProgram;
 const runGravityAssist = require('./2').runGravityAssist;
