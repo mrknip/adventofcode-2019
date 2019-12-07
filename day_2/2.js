@@ -6,7 +6,7 @@ const OP_CODES = {
 }
 
 
-function runOpcodeProgram(array, startIndex = 0, out) {
+function runIntcodeProgram(array, startIndex = 0, out) {
   if (!array.length) return array;
   const result = array.slice(0);
 
@@ -26,7 +26,7 @@ function runOpcodeProgram(array, startIndex = 0, out) {
     const operandB = result[operandIndexB];
     result[outputIndex] = operandA + operandB;
     const newStartIndex = startIndex + 4;
-    return runOpcodeProgram(result, newStartIndex);
+    return runIntcodeProgram(result, newStartIndex);
   }
 
   if (opCode ===  OP_CODES.MULTIPLY) {
@@ -41,7 +41,7 @@ function runOpcodeProgram(array, startIndex = 0, out) {
 
     const newStartIndex = startIndex + 4;
 
-    return runOpcodeProgram(result, newStartIndex);
+    return runIntcodeProgram(result, newStartIndex);
   }
 }
 
@@ -58,7 +58,7 @@ function runGravityAssist (noun, verb) {
   program[1] = noun;
   program[2] = verb;
 
-  const result = runOpcodeProgram(program);
+  const result = runIntcodeProgram(program);
 
   return result[0];
 }
@@ -78,7 +78,7 @@ function getNounVerbForTarget(target, LIMIT = 20) {
 }
 
 module.exports = {
-  runOpcodeProgram: runOpcodeProgram,
+  runIntcodeProgram: runIntcodeProgram,
   runGravityAssist: runGravityAssist,
   getNounVerbForTarget: getNounVerbForTarget,
 }

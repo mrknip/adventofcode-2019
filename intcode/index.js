@@ -69,11 +69,12 @@ function getParameters(array, startIndex, quantity, parameterModes) {
     });
 }
 
-function runOpcodeProgram(array, input, startIndex = 0, out = []) {
+function runIntcodeProgram(array, input, startIndex = 0, out = []) {
   if (startIndex >= array.length) return 0;
 
   if (!array.length) return array;
   const result = array.slice(0);
+  const remainingInput = Array.isArray(input) ? [...input] : [ input ];
 
   const { opCode, parameterModes, getParameterMode }  = parseOpCode(array[startIndex]);
 
@@ -90,14 +91,14 @@ function runOpcodeProgram(array, input, startIndex = 0, out = []) {
     out.push(output);
 
     const newStartIndex = startIndex + 2;
-    return runOpcodeProgram(array, input, newStartIndex, out)
+    return runIntcodeProgram(array, remainingInput, newStartIndex, out)
   }
 
   if (opCode === OP_CODES.ADD) {
     const [ operandA, operandB, outputIndex ] = getParameters(array, startIndex, 3, parameterModes)
     result[outputIndex] = operandA + operandB;
     const newStartIndex = startIndex + 4;
-    return runOpcodeProgram(result, input, newStartIndex, out);
+    return runIntcodeProgram(result, remainingInput, newStartIndex, out);
   }
 
   if (opCode === OP_CODES.MULTIPLY) {
@@ -107,30 +108,29 @@ function runOpcodeProgram(array, input, startIndex = 0, out = []) {
 
     const newStartIndex = startIndex + 4;
 
-    return runOpcodeProgram(result, input, newStartIndex, out);
+    return runIntcodeProgram(result, input, newStartIndex, out);
   }
 
   if (opCode === OP_CODES.SET) {
-    const destinationAddress = array[1];
-
-    result[destinationAddress] = input;
+    const destinationAddress = array[startIndex + 1];
+    result[destinationAddress] = remainingInput.shift();
     const newStartIndex = startIndex + 2;
 
-    return runOpcodeProgram(result, input, newStartIndex, out);
+    return runIntcodeProgram(result, remainingInput, newStartIndex, out);
   }
 
   if (opCode === OP_CODES.JUMP_IF_TRUE) {
     const [ operandA, destination ] = getParameters(array, startIndex, 2, parameterModes)
     const newStartIndex = operandA !== 0 ? destination : startIndex + 3;
 
-    return runOpcodeProgram(result, input, newStartIndex, out);
+    return runIntcodeProgram(result, remainingInput, newStartIndex, out);
   }
 
   if (opCode === OP_CODES.JUMP_IF_FALSE) {
     const [ operandA, destination ] = getParameters(array, startIndex, 2, parameterModes)
     const newStartIndex = operandA === 0 ? destination : startIndex + 3;
 
-    return runOpcodeProgram(result, input, newStartIndex, out);
+    return runIntcodeProgram(result, remainingInput, newStartIndex, out);
   }
 
 
@@ -139,7 +139,7 @@ function runOpcodeProgram(array, input, startIndex = 0, out = []) {
     result[destination] = operandA < operandB ? 1 : 0;
     const newStartIndex = startIndex + 4;
 
-    return runOpcodeProgram(result, input, newStartIndex, out);
+    return runIntcodeProgram(result, remainingInput, newStartIndex, out);
   }
 
   if (opCode === OP_CODES.EQUALS) {
@@ -147,7 +147,7 @@ function runOpcodeProgram(array, input, startIndex = 0, out = []) {
     result[destination] = operandA === operandB ? 1 : 0;
     const newStartIndex = startIndex + 4;
 
-    return runOpcodeProgram(result, input, newStartIndex, out);
+    return runIntcodeProgram(result, remainingInput, newStartIndex, out);
   }
 }
 
@@ -164,7 +164,7 @@ function runGravityAssist (noun, verb) {
   program[1] = noun;
   program[2] = verb;
 
-  const result = runOpcodeProgram(program);
+  const result = runIntcodeProgram(program);
 
   return result[0];
 }
@@ -184,7 +184,7 @@ function getNounVerbForTarget(target, LIMIT = 20) {
 }
 
 module.exports = {
-  runOpcodeProgram: runOpcodeProgram,
+  runIntcodeProgram: runIntcodeProgram,
   runGravityAssist: runGravityAssist,
   getNounVerbForTarget: getNounVerbForTarget,
   parseOpCode,
