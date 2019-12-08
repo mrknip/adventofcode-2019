@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { getLayers, getCharCount, corruptionCheck }  = require('./index')
+const { getLayers, getCharCount, corruptionCheck, decodeImage }  = require('./index')
 const fs = require('fs');
 
 describe.only('day 8 ', () => {
@@ -34,7 +34,7 @@ describe.only('day 8 ', () => {
       const height = 6;
       const result = corruptionCheck(data, width, height);
 
-      expect(result).to.equal(1);
+      expect(result).to.equal(828);
     });
   });
 
@@ -42,6 +42,17 @@ describe.only('day 8 ', () => {
     it('returns the count for a given char', () => {
       const string = '0011223';
       expect(getCharCount(string, '0')).to.equal(2);
+    });
+  });
+
+  describe('decodeImage', () => {
+    it('works with test case', () => {
+      const input = '0222112222120000';
+      const width = 2;
+      const height = 2;
+      const result = decodeImage(input, width, height);
+
+      expect(result).to.equal(1);
     });
   });
 });
