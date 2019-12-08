@@ -24,11 +24,99 @@ const OP_LENGTH = {
   [OP_CODES.SET]: 2, // Command:outputAddress
 }
 
-function ret(array, parameterModes, startIndex) {
-  const param = array[startIndex + 1];
-  const result = parameterModes[0] === PARAMETER_MODES.IMMEDIATE ? param : array[param];
+function IntcodeProgram(initialMemoryState, options = {}) {
+  this.memory = [...initialMemoryState];
+  this.instructionPointer = 0;
+  this.output = [];
 
-  return result;
+  this.immediateReturn = options.immediateReturn ||  true;
+}
+
+IntcodeProgram.prototype.run = function (input) {
+  if (this.instructionPointer >= this.memory.length) return 0;
+
+  if (!this.memory.length) return;
+  const result = this.memory.slice(0);
+  const remainingInput = Array.isArray(input) ? [...input] : [ input ];
+
+  const { opCode, parameterModes, getParameterMode } = parseOpCode(this.memory[this.instructionPointer]);
+
+  if (opCode === OP_CODES.END) {
+    return this.memory;
+  }
+
+  if (opCode === OP_CODES.RETURN) {
+    const output = ret(this.memory, parameterModes, this.instructionPointer);
+    this.instructionPointer += 2;
+
+    return output;
+  }
+
+  if (opCode === OP_CODES.ADD) {
+    const [ operandA, operandB, outputIndex ] = getParameters(this.memory, this.instructionPointer, 3, parameterModes)
+    this.memory[outputIndex] = operandA + operandB;
+
+    this.instructionPointer += 4;
+    return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.MULTIPLY) {
+    const [ operandA, operandB, outputIndex ] = getParameters(this.memory, this.instructionPointer, 3, parameterModes)
+
+    this.memory[outputIndex] = operandA * operandB;
+
+    this.instructionPointer +=  4;
+    return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.SET) {
+    const destinationAddress = this.memory[this.instructionPointer + 1];
+    if (remainingInput.length) { // is this correct?  what does SET do if no input?
+      this.memory[destinationAddress] = remainingInput.shift();
+    }
+
+    this.instructionPointer += 2;
+    return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.JUMP_IF_TRUE) {
+    const [ operandA, destination ] = getParameters(this.memory, this.instructionPointer, 2, parameterModes)
+    this.instructionPointer = operandA !== 0 ? destination : this.instructionPointer + 3;
+
+    return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.JUMP_IF_FALSE) {
+    const [ operandA, destination ] = getParameters(this.memory, this.instructionPointer, 2, parameterModes)
+    this.instructionPointer = operandA === 0 ? destination : this.instructionPointer + 3;
+
+    return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.LESS_THAN) {
+    const [ operandA, operandB, destination ] = getParameters(this.memory, this.instructionPointer, 3, parameterModes)
+    this.memory[destination] = operandA < operandB ? 1 : 0;
+    this.instructionPointer += 4;
+
+    return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.EQUALS) {
+    const [ operandA, operandB, destination ] = getParameters(this.memory, this.instructionPointer, 3, parameterModes)
+    this.memory[destination] = operandA === operandB ? 1 : 0;
+    this.instructionPointer += 4;
+
+    return this.run(...remainingInput);
+  }
+}
+
+
+
+// HELPERS
+function runIntcodeProgram(array, input) {
+  const program = new IntcodeProgram(array);
+
+  return program.run(input);
 }
 
 function parseOpCode(rawOpCode) {
@@ -69,88 +157,6 @@ function getParameters(array, startIndex, quantity, parameterModes) {
     });
 }
 
-function runIntcodeProgram(array, input, startIndex = 0, out = []) {
-  if (startIndex >= array.length) return 0;
-
-  if (!array.length) return array;
-  const result = array.slice(0);
-  const remainingInput = Array.isArray(input) ? [...input] : [ input ];
-
-  const { opCode, parameterModes, getParameterMode }  = parseOpCode(array[startIndex]);
-
-  if (opCode === OP_CODES.END) {
-    if (out.length) {
-      return out.join(',');
-    }
-
-    return result;
-  }
-
-  if (opCode === OP_CODES.RETURN) {
-    const output = ret(array, parameterModes, startIndex);
-    out.push(output);
-
-    const newStartIndex = startIndex + 2;
-    return runIntcodeProgram(array, remainingInput, newStartIndex, out)
-  }
-
-  if (opCode === OP_CODES.ADD) {
-    const [ operandA, operandB, outputIndex ] = getParameters(array, startIndex, 3, parameterModes)
-    result[outputIndex] = operandA + operandB;
-    const newStartIndex = startIndex + 4;
-    return runIntcodeProgram(result, remainingInput, newStartIndex, out);
-  }
-
-  if (opCode === OP_CODES.MULTIPLY) {
-    const [ operandA, operandB, outputIndex ] = getParameters(array, startIndex, 3, parameterModes)
-
-    result[outputIndex] = operandA * operandB;
-
-    const newStartIndex = startIndex + 4;
-
-    return runIntcodeProgram(result, input, newStartIndex, out);
-  }
-
-  if (opCode === OP_CODES.SET) {
-    const destinationAddress = array[startIndex + 1];
-    result[destinationAddress] = remainingInput.shift();
-    const newStartIndex = startIndex + 2;
-
-    return runIntcodeProgram(result, remainingInput, newStartIndex, out);
-  }
-
-  if (opCode === OP_CODES.JUMP_IF_TRUE) {
-    const [ operandA, destination ] = getParameters(array, startIndex, 2, parameterModes)
-    const newStartIndex = operandA !== 0 ? destination : startIndex + 3;
-
-    return runIntcodeProgram(result, remainingInput, newStartIndex, out);
-  }
-
-  if (opCode === OP_CODES.JUMP_IF_FALSE) {
-    const [ operandA, destination ] = getParameters(array, startIndex, 2, parameterModes)
-    const newStartIndex = operandA === 0 ? destination : startIndex + 3;
-
-    return runIntcodeProgram(result, remainingInput, newStartIndex, out);
-  }
-
-
-  if (opCode === OP_CODES.LESS_THAN) {
-    const [ operandA, operandB, destination ] = getParameters(array, startIndex, 3, parameterModes)
-    result[destination] = operandA < operandB ? 1 : 0;
-    const newStartIndex = startIndex + 4;
-
-    return runIntcodeProgram(result, remainingInput, newStartIndex, out);
-  }
-
-  if (opCode === OP_CODES.EQUALS) {
-    const [ operandA, operandB, destination ] = getParameters(array, startIndex, 3, parameterModes)
-    result[destination] = operandA === operandB ? 1 : 0;
-    const newStartIndex = startIndex + 4;
-
-    return runIntcodeProgram(result, remainingInput, newStartIndex, out);
-  }
-}
-
 function getIndices(array, startIndex) {
   return {
     opA:  array[startIndex + 1],
@@ -158,6 +164,15 @@ function getIndices(array, startIndex) {
     output:  array[3],
   }
 }
+
+function ret(array, parameterModes, startIndex) {
+  const param = array[startIndex + 1];
+  const result = parameterModes[0] === PARAMETER_MODES.IMMEDIATE ? param : array[param];
+
+  return result;
+}
+
+// Puzzle-specific functions
 
 function runGravityAssist (noun, verb) {
   const program = gravityAssistProgram.slice(0);
@@ -188,4 +203,5 @@ module.exports = {
   runGravityAssist: runGravityAssist,
   getNounVerbForTarget: getNounVerbForTarget,
   parseOpCode,
+  IntcodeProgram,
 }
