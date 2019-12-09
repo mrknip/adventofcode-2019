@@ -33,7 +33,8 @@ const PIXELS = {
 
 const RENDERED_PIXELS = {
   [PIXELS.BLACK]: ' ',
-  [PIXELS.WHITE]:`${Bright}${BgBlue} ${Reset}`,
+  [PIXELS.WHITE]:`@`,
+  // [PIXELS.WHITE]:`${Bright}${BgBlue} ${Reset}`,
   [PIXELS.TRANSPARENT]: ' ',
 }
 
@@ -61,8 +62,8 @@ function decodeImage(input, w, h, render = true) {
     .fill(PIXELS.TRANSPARENT)
     .map((pixel, ci) => layerData
       .map(layer => layer[ci])
-      .find((layerPx) => layerPx !== PIXELS.TRANSPARENT)
-    });
+      .find(layerPx => layerPx !== PIXELS.TRANSPARENT)
+    );
 
   if (render) { // renders for CLI - shouldn't be here really
     let renderedImage = '';
