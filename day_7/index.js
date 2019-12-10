@@ -29,6 +29,7 @@ function getResultForPhaseSetting(phaseSetting, inputProgram) {
   }
 
   while (true) {
+    // count ++
     resultThisPass = 0;
     Object.keys(amplifierPrograms).forEach((ampId, index) => {
       if (resultThisPass === undefined) return;

@@ -1,0 +1,40 @@
+#input {
+  width: 150px;
+  height: 150px;
+}
+
+.shape--container {
+  display: inline-block;
+  width: 160px;
+  height: 160px;
+  border: 1px solid black;
+  vertical-align: middle;
+  margin: 8px;
+}
+
+.shape--cell {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+}
+
+.shape--cell__1 {
+  background-color: red;
+}
+
+.shape--cell__2 {
+  background-color: blue;
+}
+
+.shape--cell__3 {
+  background-color: limegreen;
+}
+
+.shape--cell__4 {
+  background-color: yellow;
+}
+
+.shape--cell__5 {
+  background-color: purple;
+}

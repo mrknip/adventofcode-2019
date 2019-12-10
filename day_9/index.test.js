@@ -33,10 +33,18 @@ describe('day 9', () => {
     expect(output).to.equal(input[1]);
   });
 
-  it.only('solves puzzle', () => {
+  it.skip('solves puzzle', () => {
     const intcodeProgram = new IntcodeProgram(data);
 
-    let output = intcodeProgram.run(1);
+    let output = intcodeProgram.runrunsafe(1);
+
+    expect(output).to.equal(1);
+  });
+
+  it.skip('solves puzzle 2 ', () => {
+    const intcodeProgram = new IntcodeProgram(data);
+
+    let output = intcodeProgram.runrunsafe(2);
 
     expect(output).to.equal(1);
   });

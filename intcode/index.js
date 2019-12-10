@@ -1,38 +1,183 @@
+const getParameters = require('./getParameters');
 const gravityAssistProgram = require('./2.data');
+const { OP_CODES, OP_DATA, PARAMETER_MODES } = require('./definitions');
 
-const OP_CODES = {
-  END: 99,
-  ADD: 1,
-  MULTIPLY: 2,
-  SET: 3,
-  RETURN: 4,
-  JUMP_IF_TRUE: 5,
-  JUMP_IF_FALSE: 6,
-  LESS_THAN: 7,
-  EQUALS: 8,
-}
+function logState(program, input) {
+  const { opCode, parameterModes, getParameterMode } = parseOpCode(program.memory[program.instructionPointer]);
 
-const PARAMETER_MODES = {
-  POSITION: 0,
-  IMMEDIATE: 1,
-}
+  console.log('===STEP ', program.stepCount, '====');
+  console.log('raw', program.memory.slice(program.instructionPointer, program.instructionPointer + OP_DATA[opCode].parameters + 1))
+  console.log({opCode}, OP_DATA[opCode].name);
 
-const OP_LENGTH = {
-  [OP_CODES.END]: 0,
-  [OP_CODES.ADD]: 4, // Command:a:b:outputAddress
-  [OP_CODES.MULTIPLY]: 4, // Command:a:b:outputAddress
-  [OP_CODES.SET]: 2, // Command:outputAddress
+  console.log('parameterModes', parameterModes.map(m => ({
+    0: 'position',
+    1: 'immediate',
+    2: 'relative',
+  }[m])));
+  console.log('parameters', getParameters(program.memory, program));
+  console.log('inputs', input);
+  // console.log(this.memory.join(','));
+
+  console.log('relativeBase', program.relativeBase);
+  console.log('instruction', program.instructionPointer);
+  console.log('output', program.output);
+  console.log('=======');
+  console.log('')
 }
 
 function IntcodeProgram(initialMemoryState, options = {}) {
   this.memory = [...initialMemoryState];
   this.instructionPointer = 0;
+  this.relativeBase = 0;
+  this.output = [];
+  this.input = [];
+  this.stepCount = 0;
+
+  this.returnMemoryOnHalt = options.returnMemoryOnHalt ||  false;
+  this.forEachInstruction = options.forEachInstruction;
+}
+
+IntcodeProgram.prototype.sendOutput = function () {
+  if (this.returnMemoryOnHalt) {
+    return this.memory;
+  }
+
+  const outValue = [...this.output];
   this.output = [];
 
-  this.immediateReturn = options.immediateReturn ||  true;
+  if (outValue.length <= 1) {
+    return outValue[0];
+  }
+  return outValue;
+}
+
+IntcodeProgram.prototype.runrunsafe = function (input) {
+  let result = undefined;
+  this.input = Array.isArray(input) ? [ ...input ] : [ input ];
+
+  while (result === undefined && this.stepCount < Infinity) {
+    result = this.runSafe(input)
+  }
+
+  return result;
+}
+
+IntcodeProgram.prototype.runSafe = function () {
+  ++this.stepCount;
+
+
+  if (this.instructionPointer >= this.memory.length) return 0;
+
+  if (!this.memory.length) return;
+  const result = this.memory.slice(0);
+  const remainingInput = Array.isArray(this.input) ? [...this.input] : [ this.input ];
+
+  const { opCode, parameterModes, getParameterMode } = parseOpCode(this.memory[this.instructionPointer]);
+
+  if (this.forEachInstruction) {
+    this.forEachInstruction(this, opCode)
+  }
+
+  // logState(this, remainingInput)
+  // console.log('mem at relativeBase', this.relativeBase, 'is ', this.memory[this.relativeBase]);
+  if (opCode === OP_CODES.END) {
+    return this.sendOutput();
+  }
+
+  if (opCode === OP_CODES.RETURN) {
+    const [ newOutput ] = getParameters(this.memory, this);
+    if (newOutput === undefined) { // HACK!
+      return this.sendOutput();
+    }
+
+    this.output.push(newOutput)
+    this.instructionPointer += 2;
+
+    // return this.run(...remainingInput)
+  }
+
+  if (opCode === OP_CODES.ADD) {
+    const [ operandA, operandB, outputIndex ] = getParameters(this.memory, this)
+    this.memory[outputIndex] = operandA + operandB;
+
+    this.instructionPointer += 4;
+    // return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.MULTIPLY) {
+    const [ operandA, operandB, outputIndex ] = getParameters(this.memory, this)
+
+    this.memory[outputIndex] = operandA * operandB;
+
+    this.instructionPointer +=  4;
+    // return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.SET) {
+    const [ destinationAddress ] = getParameters(this.memory, this);
+    console.log({destinationAddress});
+    // const destinationAddress = this.memory[this.instructionPointer + 1];
+    if (this.input.filter(v=> v !== undefined).length) { // is this correct?  what does SET do if no input?
+      console.log({remainingInput});
+
+      this.memory[+destinationAddress] = this.input.shift();
+
+      console.log(this.memory[destinationAddress]);
+      console.log(this.memory[1991]);
+    } else { // it's blocked, return output and wait.  HACK - should output at 4 command and *then* continue
+      return this.sendOutput();
+    }
+
+    this.instructionPointer += 2;
+    // return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.JUMP_IF_TRUE) {
+    const [ operandA, destination ] = getParameters(this.memory, this);
+    const passesTest = operandA !== 0;
+    console.log({passesTest})
+    this.instructionPointer = passesTest ? destination : this.instructionPointer + 3;
+
+    // return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.JUMP_IF_FALSE) {
+    const [ operandA, destination ] = getParameters(this.memory, this)
+    const passesTest = operandA === 0;
+    this.instructionPointer = operandA === 0 ? destination : this.instructionPointer + 3;
+
+    // return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.LESS_THAN) {
+    const [ operandA, operandB, destination ] = getParameters(this.memory, this)
+    this.memory[destination] = operandA < operandB ? 1 : 0;
+    this.instructionPointer += 4;
+
+    // return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.EQUALS) {
+    const [ operandA, operandB, destination ] = getParameters(this.memory, this)
+    this.memory[destination] = operandA === operandB ? 1 : 0;
+    this.instructionPointer += 4;
+
+    // return this.run(...remainingInput);
+  }
+
+  if (opCode === OP_CODES.UPDATE_RELATIVE_BASE) {
+    const [ value ] = getParameters(this.memory, this);
+    console.log({value});
+    this.relativeBase += value;
+    this.instructionPointer += 2;
+
+    // return this.run(...remainingInput)
+  }
 }
 
 IntcodeProgram.prototype.run = function (input) {
+  ++this.stepCount;
+
   if (this.instructionPointer >= this.memory.length) return 0;
 
   if (!this.memory.length) return;
@@ -41,19 +186,30 @@ IntcodeProgram.prototype.run = function (input) {
 
   const { opCode, parameterModes, getParameterMode } = parseOpCode(this.memory[this.instructionPointer]);
 
+  if (this.forEachInstruction) {
+    this.forEachInstruction(this, opCode)
+  }
+
+  logState(this, remainingInput)
+  // console.log('mem at relativeBase', this.relativeBase, 'is ', this.memory[this.relativeBase]);
   if (opCode === OP_CODES.END) {
-    return this.memory;
+    return this.sendOutput();
   }
 
   if (opCode === OP_CODES.RETURN) {
-    const output = ret(this.memory, parameterModes, this.instructionPointer);
+    const [ newOutput ] = getParameters(this.memory, this);
+    if (newOutput === undefined) { // HACK!
+      return this.sendOutput();
+    }
+
+    this.output.push(newOutput)
     this.instructionPointer += 2;
 
-    return output;
+    return this.run(...remainingInput)
   }
 
   if (opCode === OP_CODES.ADD) {
-    const [ operandA, operandB, outputIndex ] = getParameters(this.memory, this.instructionPointer, 3, parameterModes)
+    const [ operandA, operandB, outputIndex ] = getParameters(this.memory, this)
     this.memory[outputIndex] = operandA + operandB;
 
     this.instructionPointer += 4;
@@ -61,7 +217,7 @@ IntcodeProgram.prototype.run = function (input) {
   }
 
   if (opCode === OP_CODES.MULTIPLY) {
-    const [ operandA, operandB, outputIndex ] = getParameters(this.memory, this.instructionPointer, 3, parameterModes)
+    const [ operandA, operandB, outputIndex ] = getParameters(this.memory, this)
 
     this.memory[outputIndex] = operandA * operandB;
 
@@ -70,9 +226,18 @@ IntcodeProgram.prototype.run = function (input) {
   }
 
   if (opCode === OP_CODES.SET) {
-    const destinationAddress = this.memory[this.instructionPointer + 1];
-    if (remainingInput.length) { // is this correct?  what does SET do if no input?
-      this.memory[destinationAddress] = remainingInput.shift();
+    const [ destinationAddress ] = getParameters(this.memory, this);
+    console.log({destinationAddress});
+    // const destinationAddress = this.memory[this.instructionPointer + 1];
+    if (remainingInput.filter(v=> v !== undefined).length) { // is this correct?  what does SET do if no input?
+      console.log({remainingInput});
+
+      this.memory[+destinationAddress] = remainingInput.shift();
+
+      console.log(this.memory[destinationAddress]);
+      console.log(this.memory[1991]);
+    } else { // it's blocked, return output and wait.  HACK - should output at 4 command and *then* continue
+      return this.sendOutput();
     }
 
     this.instructionPointer += 2;
@@ -80,21 +245,24 @@ IntcodeProgram.prototype.run = function (input) {
   }
 
   if (opCode === OP_CODES.JUMP_IF_TRUE) {
-    const [ operandA, destination ] = getParameters(this.memory, this.instructionPointer, 2, parameterModes)
-    this.instructionPointer = operandA !== 0 ? destination : this.instructionPointer + 3;
+    const [ operandA, destination ] = getParameters(this.memory, this);
+    const passesTest = operandA !== 0;
+    console.log({passesTest})
+    this.instructionPointer = passesTest ? destination : this.instructionPointer + 3;
 
     return this.run(...remainingInput);
   }
 
   if (opCode === OP_CODES.JUMP_IF_FALSE) {
-    const [ operandA, destination ] = getParameters(this.memory, this.instructionPointer, 2, parameterModes)
+    const [ operandA, destination ] = getParameters(this.memory, this)
+    const passesTest = operandA === 0;
     this.instructionPointer = operandA === 0 ? destination : this.instructionPointer + 3;
 
     return this.run(...remainingInput);
   }
 
   if (opCode === OP_CODES.LESS_THAN) {
-    const [ operandA, operandB, destination ] = getParameters(this.memory, this.instructionPointer, 3, parameterModes)
+    const [ operandA, operandB, destination ] = getParameters(this.memory, this)
     this.memory[destination] = operandA < operandB ? 1 : 0;
     this.instructionPointer += 4;
 
@@ -102,19 +270,27 @@ IntcodeProgram.prototype.run = function (input) {
   }
 
   if (opCode === OP_CODES.EQUALS) {
-    const [ operandA, operandB, destination ] = getParameters(this.memory, this.instructionPointer, 3, parameterModes)
+    const [ operandA, operandB, destination ] = getParameters(this.memory, this)
     this.memory[destination] = operandA === operandB ? 1 : 0;
     this.instructionPointer += 4;
 
     return this.run(...remainingInput);
   }
+
+  if (opCode === OP_CODES.UPDATE_RELATIVE_BASE) {
+    const [ value ] = getParameters(this.memory, this);
+    console.log({value});
+    this.relativeBase += value;
+    this.instructionPointer += 2;
+
+    return this.run(...remainingInput)
+  }
 }
 
 
-
 // HELPERS
-function runIntcodeProgram(array, input) {
-  const program = new IntcodeProgram(array);
+function runIntcodeProgram(array, input, options = {}) {
+  const program = new IntcodeProgram(array, options);
 
   return program.run(input);
 }
@@ -125,51 +301,23 @@ function parseOpCode(rawOpCode) {
   const parameterModes = opCodeString
     .substr(0, opCodeString.length - 2)
     .split('')
-    .reverse();
+    .reverse()
+    .map(v => +v);
 
   return {
     opCode: +opCode,
-    parameterModes: parameterModes.map(v => +v),
+    parameterModes: pad(parameterModes, OP_DATA[opCode].parameters, 0),
   }
 }
 
-function getParameters(array, startIndex, quantity, parameterModes) {
-  const {opCode} = parseOpCode(array[startIndex]);
-
-  return array
-    .slice(startIndex + 1, startIndex + 1 + quantity)
-    .map((parameter, index) => {
-      const mode = parameterModes[index] || 0;
-
-      if (mode === PARAMETER_MODES.POSITION) {
-        if (
-          index === quantity - 1 &&
-          (![OP_CODES.JUMP_IF_TRUE, OP_CODES.JUMP_IF_FALSE].includes(opCode))
-        ) {
-          return parameter
-        }
-        return array[parameter];
-      }
-
-      if (mode === PARAMETER_MODES.IMMEDIATE) {
-        return parameter;
-      }
-    });
-}
-
-function getIndices(array, startIndex) {
-  return {
-    opA:  array[startIndex + 1],
-    opB:  array[2],
-    output:  array[3],
+function pad(array, len, fill) {
+  const diff = len - array.length;
+  if (diff > 0) {
+    return array.concat(new Array(diff).fill(fill))
   }
-}
 
-function ret(array, parameterModes, startIndex) {
-  const param = array[startIndex + 1];
-  const result = parameterModes[0] === PARAMETER_MODES.IMMEDIATE ? param : array[param];
-
-  return result;
+  return array;
+  // if (array.length < )
 }
 
 // Puzzle-specific functions
