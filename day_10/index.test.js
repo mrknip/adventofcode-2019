@@ -162,13 +162,13 @@ describe.only('day 10', () => {
       expect(result).to.equal(210);
     });
 
-    it.only('solves puzzle', () => {
+    it('solves puzzle', () => {
       const result = getMaxVisibility(makeMap(data));
       expect(result).to.equal(340);
     });
   });
 
-  describe('getNthAsteroid', () => {
+  describe.only('getNthAsteroid', () => {
     it('returns the nearest due north first', () => {
       const input = makeMap(`
 .#.
@@ -194,7 +194,7 @@ describe.only('day 10', () => {
     });
 
 
-    it.skip('handles test case 1', () => {
+    it('handles test case 1', () => {
       const input = makeMap(`
 .#....#####...#..
 ##...##.#####..##
@@ -264,7 +264,7 @@ describe.only('day 10', () => {
 
     });
 
-    it.skip('handles test case 2', () => {
+    it('handles test case 2', () => {
       const input = makeMap(`
   .#..##.###...#######
   ##.############..##.
@@ -301,7 +301,7 @@ describe.only('day 10', () => {
       const input = makeMap(data);
       const base = [28,29];
       // getNthAsteroid(input, base, 207, { render: true });
-      expect(getNthAsteroid(input, base, 200)).to.equal('12,21');
+      expect(getNthAsteroid(input, base, 200)).to.equal('26,28');
     });
   });
 
