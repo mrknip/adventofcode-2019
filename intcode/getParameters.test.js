@@ -1,7 +1,7 @@
 const getParameters = require('./getParameters');
 const { expect } = require('chai');
 
-describe('getParameters', () => {
+describe.only('getParameters', () => {
   const pointers = {
     instructionPointer: 0,
     relativeBase: 0,
@@ -9,9 +9,9 @@ describe('getParameters', () => {
 
   it('binary op - position', () => {
     const input = [1,10,11,12];
-    input[10] = 'foo'
-    input[11] = 'bar'
-    input[12] = 'NO!'
+    input[10] = 'foo';
+    input[11] = 'bar';
+    input[12] = 'NO!';
 
     // console.log({input});
     const parameters = getParameters(input, pointers);
@@ -25,9 +25,9 @@ describe('getParameters', () => {
 
   it('binary op - immediate', () => {
     const input = [1101,10,11,12];
-    input[10] = 'foo'
-    input[11] = 'bar'
-    input[12] = 'NO!'
+    input[10] = 'foo';
+    input[11] = 'bar';
+    input[12] = 'NO!';
 
     const parameters = getParameters(input, pointers);
 
@@ -39,9 +39,9 @@ describe('getParameters', () => {
 
   it('binary op - ignores immediate for output value', () => {
     const input = [11101,10,11,12];
-    input[10] = 'foo'
-    input[11] = 'bar'
-    input[12] = 'NO!'
+    input[10] = 'foo';
+    input[11] = 'bar';
+    input[12] = 'NO!';
 
     const parameters = getParameters(input, pointers);
 
@@ -54,9 +54,9 @@ describe('getParameters', () => {
 
   it('binary op - ignores immediate for output value', () => {
     const input = [11101,10,11,12];
-    input[10] = 'foo'
-    input[11] = 'bar'
-    input[12] = 'NO!'
+    input[10] = 'foo';
+    input[11] = 'bar';
+    input[12] = 'NO!';
 
     const parameters = getParameters(input, pointers);
 
@@ -69,9 +69,9 @@ describe('getParameters', () => {
 
   it('binary op - returns third parameter as address in position mode', () => {
     const input = [11101,10,11,12];
-    input[10] = 'foo'
-    input[11] = 'bar'
-    input[12] = 'NO!'
+    input[10] = 'foo';
+    input[11] = 'bar';
+    input[12] = 'NO!';
 
     const parameters = getParameters(input, pointers);
 
@@ -121,7 +121,7 @@ describe('getParameters', () => {
       const input = [2201, 1, 2, 10];
       input[9001] = 'foo';
       input[9002] = 'bar';
-      const [a,b,c] = getParameters(input, { ...pointers, relativeBase: 9000 })
+      const [a,b,c] = getParameters(input, { ...pointers, relativeBase: 9000 });
 
       expect(a).to.equal('foo');
       expect(b).to.equal('bar');
@@ -130,7 +130,7 @@ describe('getParameters', () => {
     it('unary - return - relative', () => {
       const input = [204, 1];
       input[9001] = 'foo';
-      const [a,b,c] = getParameters(input, { ...pointers, relativeBase: 9000 })
+      const [a,b,c] = getParameters(input, { ...pointers, relativeBase: 9000 });
 
       expect(a).to.equal('foo');
     });
@@ -138,7 +138,7 @@ describe('getParameters', () => {
     it('unary - set - relative', () => {
       const input = [203, 1];
       input[9001] = 'foo';
-      const [a,b,c] = getParameters(input, { ...pointers, relativeBase: 9000 })
+      const [a,b,c] = getParameters(input, { ...pointers, relativeBase: 9000 });
 
       expect(a).to.equal(9001);
     });

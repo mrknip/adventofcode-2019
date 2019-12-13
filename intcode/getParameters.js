@@ -31,7 +31,7 @@ module.exports = function getParameters(array, pointers) {
         ) {
           return relativeBase + parameter;
         }
-        
+
         return array[relativeBase + parameter] || 0; // defaults to zero for unset memory
       }
 
@@ -46,7 +46,7 @@ module.exports = function getParameters(array, pointers) {
             OP_CODES.JUMP_IF_FALSE
           ].includes(opCode))
         ) {
-          return parameter
+          return parameter;
         }
         return array[parameter] || 0; // defaults to zero for unset memory
       }
@@ -55,7 +55,7 @@ module.exports = function getParameters(array, pointers) {
         return parameter;
       }
     });
-}
+};
 //
 // // TODO DRY
 // const PARAMETER_MODES = {
@@ -92,7 +92,7 @@ function pad(array, len, fill) {
   const diff = len - array.length;
 
   if (diff > 0) {
-    return array.concat(new Array(diff).fill(fill))
+    return array.concat(new Array(diff).fill(fill));
   }
 
   return array;
@@ -111,5 +111,5 @@ function parseOpCode(rawOpCode) {
   return {
     opCode: +opCode,
     parameterModes: paddedParameterModes,
-  }
+  };
 }

@@ -4,7 +4,7 @@ const data = require('./data');
 
 const makeMap = str => str.trim().split('\n').map(row => row.trim()).join('\n');
 
-describe.only('day 10', () => {
+describe.skip('day 10', () => {
   describe('getAsteroidCount', () => {
     it('detects adjacent asteroids on the horizontal', () => {
       const input = makeMap(`
@@ -168,7 +168,7 @@ describe.only('day 10', () => {
     });
   });
 
-  describe.only('getNthAsteroid', () => {
+  describe('getNthAsteroid', () => {
     it('returns the nearest due north first', () => {
       const input = makeMap(`
 .#.

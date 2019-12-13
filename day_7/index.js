@@ -26,16 +26,18 @@ function getResultForPhaseSetting(phaseSetting, inputProgram) {
     C: new IntcodeProgram(inputProgram),
     D: new IntcodeProgram(inputProgram),
     E: new IntcodeProgram(inputProgram),
-  }
+  };
 
   while (true) {
     // count ++
     resultThisPass = 0;
     Object.keys(amplifierPrograms).forEach((ampId, index) => {
+      console.log({resultThisPass});
       if (resultThisPass === undefined) return;
 
       inputs = result === undefined ? [+phaseSetting[index]] : [];
       inputs.push(index === 0 ? (result || 0) : resultThisPass);
+
       resultThisPass = amplifierPrograms[ampId].run(inputs);
     });
 
@@ -72,7 +74,7 @@ function getMax(inputProgram, phaseString) {
       maxPerm = perm;
     }
     max = Math.max(result, max);
-  })
+  });
 
 
   return max;
@@ -82,7 +84,7 @@ function getPermutations(phaseSettingsWhole) {
   const phaseSettings = phaseSettingsWhole.split('');
   const permutations = [];
   generatePermutations(phaseSettings, (digit) => {
-    permutations.push(digit.map(d => `${d}`).join(''))
+    permutations.push(digit.map(d => `${d}`).join(''));
   });
 
   return permutations;
@@ -120,4 +122,4 @@ module.exports = {
   getMaxLooped,
   IntcodeProgram,
   getResultForPhaseSetting,
-}
+};

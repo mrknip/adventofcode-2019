@@ -31,17 +31,17 @@ describe('parseOpCode', () => {
   });
 
 
-    it('returns parameters', () => {
-      const opCode = 101;
-      const result = parseOpCode(opCode);
+  it('returns parameters', () => {
+    const opCode = 101;
+    const result = parseOpCode(opCode);
 
-      expect(result.parameterModes).to.deep.equal([1]);
-    });
+    expect(result.parameterModes).to.deep.equal([1, 0, 0]);
+  });
 
-    it('returns parameters in correct order', () => {
-      const opCode = 32101;
-      const result = parseOpCode(opCode);
+  it('returns parameters in correct order', () => {
+    const opCode = 32101;
+    const result = parseOpCode(opCode);
 
-      expect(result.parameterModes).to.deep.equal([1, 2, 3]);
-    });
+    expect(result.parameterModes).to.deep.equal([1, 2, 3]);
+  });
 });

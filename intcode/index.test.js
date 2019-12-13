@@ -31,7 +31,7 @@ describe('runIntcodeProgram', () => {
       const ADDR_2 = 11;
       const ADDR_3 = 12;
       const program = [102,2,ADDR_2,ADDR_3,99,null,null,null,null,null,ADDR_1,ADDR_2,ADDR_3];
-      program[ADDR_2] = 2
+      program[ADDR_2] = 2;
       const result = runIntcodeProgram(program, null, {
         returnMemoryOnHalt: true,
       });
@@ -57,28 +57,28 @@ describe('runIntcodeProgram', () => {
         returnMemoryOnHalt: true,
       });
 
-      expect(result).to.deep.equal([1002,4,3,4,99])
+      expect(result).to.deep.equal([1002,4,3,4,99]);
     });
   });
 
-  describe.skip('day 2', () => {
+  describe('day 2', () => {
     it('works - day 2 test case 1', () => {
       const program = [1,9,10,3,2,3,11,0,99,30,40,50];
-      const result = runIntcodeProgram(program);
+      const result = runIntcodeProgram(program, null, { returnMemoryOnHalt: true });
 
       expect(result).to.deep.equal([3500,9,10,70,2,3,11,0,99,30,40,50]);
     });
 
     it('works - day 2 test case 2', () => {
       const program = [1,0,0,0,99];
-      const result = runIntcodeProgram(program);
+      const result = runIntcodeProgram(program, null, { returnMemoryOnHalt: true });
 
       expect(result).to.deep.equal([2,0,0,0,99]);
     });
 
     it('works - day 2 test case 2', () => {
       const program = [2,3,0,3,99];
-      const result = runIntcodeProgram(program);
+      const result = runIntcodeProgram(program, null, { returnMemoryOnHalt: true });
 
       expect(result).to.deep.equal([2,3,0,6,99]);
     });
@@ -88,10 +88,10 @@ describe('runIntcodeProgram', () => {
       puzzle_input[1] = 12;
       puzzle_input[2] = 2;
 
-      const result = runIntcodeProgram(puzzle_input);
+      const result = runIntcodeProgram(puzzle_input, null, { returnMemoryOnHalt: true });
 
-      expect(result[0]).to.equal(5098658)
-    })
+      expect(result[0]).to.equal(5098658);
+    });
   });
 
   describe('optcode SET', () => {
@@ -146,7 +146,7 @@ describe('runIntcodeProgram', () => {
     });
 
     expect(result).to.deep.equal([1101,100,-1,4,99]);
-  })
+  });
 
   it('handles comparison', () => {
     const program = [3,9,8,9,10,9,4,9,99,-1,8];
@@ -181,8 +181,8 @@ describe('runIntcodeProgram', () => {
 
   it('runs longer program', () => {
     const program = [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,
-1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
-999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99];
+      1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
+      999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99];
     expect(runIntcodeProgram(program, 0)).to.equal(999);
     expect(runIntcodeProgram(program, 8)).to.equal(1000);
     expect(runIntcodeProgram(program, 9)).to.equal(1001);
@@ -199,16 +199,16 @@ describe.skip('AOC_5 - diagnostics', () => {
     const userInput = 1;
     const result = runIntcodeProgram(program, userInput);
 
-    expect(result).to.equal(0)
-  })
+    expect(result).to.equal(0);
+  });
 
   it('works- thermals', () => {
     const program = airconDiagnosticProgram;
     const userInput = 5;
 
     const result = runIntcodeProgram(program, userInput);
-    expect(result).to.equal(7408802)
-  })
+    expect(result).to.equal(7408802);
+  });
 });
 
 describe('runGravityAssist', () => {
