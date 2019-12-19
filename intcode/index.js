@@ -20,7 +20,7 @@ function intcodeStateLog(program, input) {
 
   console.log('relativeBase', program.relativeBase);
   console.log('instruction', program.instructionPointer);
-  console.log('output', program.output);
+  // console.log('output', program.output);
   console.log('=======');
   console.log('');
 }
@@ -79,16 +79,14 @@ IntcodeProgram.prototype.step = function () {
   ++this.stepCount;
 
   const { opCode } = parseOpCode(this.memory[this.instructionPointer]);
-
-  // console.log({opCode});
+  // intcodeStateLog(this, this.input);
   if (this.forEachInstruction) {
     this.forEachInstruction(this, opCode);
   }
 
-  // intcodeStateLog(this, this.input);
-  // console.log('mem at relativeBase', this.relativeBase, 'is ', this.memory[this.relativeBase]);
-
   if (opCode === OP_CODES.END) {
+    // this.instructionPointer = 0;
+    // this.relativeBase = 0;
     return this.sendOutput();
   }
 
