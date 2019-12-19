@@ -1,7 +1,7 @@
 const getParameters = require('./getParameters');
 const { expect } = require('chai');
 
-describe.only('getParameters', () => {
+describe('getParameters', () => {
   const pointers = {
     instructionPointer: 0,
     relativeBase: 0,

@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const { processPanel, renderGrid, getGridState }  = require('./index');
 
-describe.only('day 11', () => {
+describe('day 11', () => {
   describe('processPanel', () => {
     it('returns a color', () => {
       const currentPanelColour = 0;
@@ -29,11 +29,10 @@ describe.only('day 11', () => {
       expect(result).to.equal(2018);
     });
 
-    it.only('solves puzzle', () => {
+    it('solves puzzle', () => {
       const currentPanelColour = 1;
-      const commands = processPanel(currentPanelColour, { render: true});
-      // const result = getGridState(commands, { returnPanelCount: true });
-
+      processPanel(currentPanelColour, { render: true});
+      // this renders to the terminal
     });
   });
 
